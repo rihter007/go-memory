@@ -1,4 +1,4 @@
-package go_memory_test
+package memory_test
 
 import (
 	"testing"
@@ -19,9 +19,10 @@ func TestShared(t *testing.T) {
 	}
 
 	var releasedCount int
-	shared := go_memory.NewShared(internal, func(obj interface{}) {
+	shared := memory.NewShared(internal, func(obj interface{}) error {
 		checkInternalObject(obj)
 		releasedCount++
+		return nil
 	})
 	checkInternalObject(shared.Get())
 	if shared.Released() {
