@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -11,6 +12,11 @@ func TestStorage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: '%v'", err)
 	}
+	defer func() {
+		if err := os.Remove(tempDir); err != nil {
+			t.Errorf("Failed to remove temp directory: '%s'", tempDir)
+		}
+	}()
 	storage, err := New(tempDir, "index_")
 	if err != nil {
 		t.Fatalf("Failed to create storage: '%v'", err)
