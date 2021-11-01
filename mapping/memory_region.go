@@ -1,4 +1,4 @@
-package storage
+package mapping
 
 import (
 	"github.com/edsrzf/mmap-go"
@@ -7,6 +7,12 @@ import (
 
 type MemoryRegion struct {
 	shared memory.Shared
+}
+
+func (mr MemoryRegion) AddRef() MemoryRegion {
+	return MemoryRegion{
+		shared: mr.shared.AddRef(),
+	}
 }
 
 func (mr MemoryRegion) GetBytesUnsafe() []byte {
