@@ -1,4 +1,4 @@
-package go_memory
+package memory
 
 import (
 	"sync/atomic"
@@ -12,12 +12,12 @@ type Shared struct {
 
 type shared struct {
 	obj       interface{}
-	onRelease func(obj interface{})
+	onRelease func(obj interface{}) error
 	refCount  *int32
 	closed    uint32
 }
 
-func NewShared(obj interface{}, onRelease func(obj interface{})) Shared {
+func NewShared(obj interface{}, onRelease func(obj interface{}) error) Shared {
 	refCount := int32(1)
 	s := Shared{new(shared)}
 	s.obj = obj
@@ -27,10 +27,16 @@ func NewShared(obj interface{}, onRelease func(obj interface{})) Shared {
 }
 
 func (s Shared) Get() interface{} {
+	if s.Released() {
+		panic("Attempt to get object after it was released")
+	}
 	return s.obj
 }
 
 func (s Shared) AddRef() Shared {
+	if s.Released() {
+		panic("Attempt to add reference to object after it was released")
+	}
 	atomic.AddInt32(s.refCount, 1)
 	result := Shared{new(shared)}
 	result.obj = s.obj
@@ -45,7 +51,7 @@ func (s Shared) Close() error {
 	}
 	newCount := atomic.AddInt32(s.refCount, -1)
 	if newCount == 0 && s.onRelease != nil {
-		s.onRelease(s.obj)
+		return s.onRelease(s.obj)
 	}
 	return nil
 }
